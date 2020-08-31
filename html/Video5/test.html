@@ -1,0 +1,139 @@
+<!--<!doctype html>-->
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>video5.0</title>
+    <link href="css/video-js.min.css" rel="stylesheet" type="text/css">
+    <script src="js/video.min.js"></script>
+    <script src="js/jquery-3.4.1.min.js"></script>
+</head>
+
+<body onload="loadDiv();">
+<div id="videoDiv">
+</div>
+<form id="addDataSourceForm">
+    IP地址:<br>
+    <input type="text" name="ip" value="10.1.1.244">
+    <br>
+    通道号:<br>
+    <input type="text" name="channel" value="00">
+    <br>
+    账号:<br>
+    <input type="text" name="username" value="admin">
+    <br>
+    密码:<br>
+    <input type="text" name="password" value="admin123">
+    <br>
+    rtsp:<br>
+    <input type="text" name="rtsp" value="rtsp://admin:admin123@10.1.1.244/id=0">
+    <br>
+    <input type="button" value="播放11" onclick="play()">
+    <br>
+    开始时间:<br>
+    <input type="text" name="starttime" value="20200302t000000z">
+    <br>
+    结束时间:<br>
+    <input type="text" name="endtime" value="20200302t235959z">
+    <br>
+    <input type="button" value="回放" onclick="historys()">
+    <br>
+    <input type="button" value="停止" onclick="stop()">
+</form>
+
+</body>
+</html>
+<script type="text/javascript">
+    //关闭事件
+    window.onunload = function(){
+        stop();
+    }
+    function loadDiv() {
+        console.info("loadDiv----->");
+        $.ajax({
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            url: "http://127.0.0.1:8000/camera/rtsp-to-rtmp",      //本地服务器
+            data: JSON.stringify({
+                "username": $('input[name="username"]').val(),
+                "password": $('input[name="password"]').val(),
+                "ip": $('input[name="ip"]').val(),
+                "channel": $('input[name="channel"]').val(),
+                "inputStreamUrl": $('input[name="rtsp"]').val(),
+                "type": 0
+            }),
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 0) {
+                    var videoDiv = document.getElementById("videoDiv");
+                    videoDiv.innerHTML = '<video id="really-cool-video"' +
+                        ' class="video-js vjs-default-skin" controls preload="auto" width="640" height="264" poster="http://video-js.zencoder.com/oceans-clip.png"\n' +
+                        '       data-setup=\'{}\'>\n' +
+                        '    <source src="' + data.url + '" type="rtmp/flv">\n' +
+                        '</video>';
+                    var myPlayer = videojs('really-cool-video');
+                    videojs("really-cool-video").ready(function () {
+                        var myPlayer = this;
+                        myPlayer.play();
+                    });
+                }
+            }
+        });
+    }
+
+    //播放
+    function play() {
+    }
+
+    //回放
+    function historys() {
+        var info = $('#addDataSourceForm').serializeArray();
+        $.ajax({
+            type: "POST",
+            url: "http://127.0.0.1:8000/zhuanma?type=2",      //本地服务器
+            data: info,
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 0) {
+                    console.log("成功")
+                    var myPlayer = videojs('really-cool-video');
+                    videojs("really-cool-video").ready(function () {
+                        var myPlayer = this;
+                        myPlayer.play();
+                    });
+                } else {
+
+                }
+            }
+        });
+    }
+
+    //停止
+    function stop() {
+        console.info("pause---000-->");
+        var info = $('#addDataSourceForm').serializeArray();
+        console.info("pause--111--->");
+        $.ajax({
+            type: "POST",
+            url: "http://127.0.0.1:8000/camera/close",      //本地服务器
+            data: {
+                "ip": $('input[name="ip"]').val(),
+                "channel": $('input[name="channel"]').val()
+            },
+            async: true,
+            dataType: "json",
+            success: function (data) {
+                console.info("pause----111->");
+                if (data.code == 0) {
+                    console.log("成功")
+                    var myPlayer = videojs('really-cool-video');
+                    videojs("really-cool-video").ready(function () {
+                        var myPlayer = this;
+                        console.info("pause----->");
+                        myPlayer.pause();
+                    });
+                }
+            }
+        });
+        console.info("pause--end--->");
+    }
+</script>

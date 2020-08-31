@@ -1,0 +1,76 @@
+<!--<!doctype html>-->
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>video5.0</title>
+    <link href="css/video-js.min.css" rel="stylesheet" type="text/css">
+    <script src="js/video.min.js"></script>
+    <script src="js/jquery-3.4.1.min.js"></script>
+</head>
+
+<body onload="loadDiv();">
+<!--<div id="videoDiv">
+<embed id="view"  width="500px" height="500px"/>
+</div>-->
+<input type="button" value="提交" onclick="uploadFile()">
+<input type="button" value="获取当前用户信息" onclick="getCurrentUser()">
+</body>
+</html>
+<script type="text/javascript">
+    var camera_url = "http://10.1.11.184:8000";
+
+    function loadDiv() {
+        // getChannels();
+        console.info("loadDiv----->");
+        //rtspToRtmp();
+    }
+
+    function rtspToRtmp() {
+        var videoDiv = document.getElementById("videoDiv");
+        videoDiv.innerHTML = '<video  muted id="video1" class="video-js vjs-default-skin" controls preload="auto" width="640" height="264" poster="http://video-js.zencoder.com/oceans-clip.png"   data-setup="{}">   ' +
+            '<source src="9359a52997f94337b95bd3c2a46e8a32_20200818_103730.mp4" type="video/mp4"></video>';
+        // var video = videojs("really-cool-video");
+
+        videojs("video1").ready(function () {
+            var myPlayer = this;
+            myPlayer.play();
+        });
+    }
+
+    function uploadFile() {
+        var videoFilePath = "d:/tmp";
+        var videoFileName = "060a8e4b417f4affbec1a459e513c473_20200820_161610.mp4";
+        var arraignRecordId = "893657ED45834F5281C1F1773868B8E1";
+        var param = "?inputFilePath=" + videoFilePath +
+            "&inputFileName=" + videoFileName +
+            "&noteId=" + arraignRecordId;
+
+
+        $.ajax({
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            url: "http://127.0.0.1:8000/camera/upload-video-file-to-ftp?inputFilePath=d:/tmp&inputFileName=e4fd1fdfba1b462f9b56f13c283d47ad_20200821_153719.mp4&noteId=0680FCBD33544A8B8256101354613E89",      //本地服务器
+            dataType: "json",
+            headers: {
+                "Authorization": "eyJhbGciOiJSUzI1NiJ9.eyJ1c2VybmFtZSI6IjA5Mjc4OCIsInBhc3N3b3JkIjoiYWM1YjYwMjM0YTExNjU3ZTRjY2UzYTNkNGNjNzRlZjAiLCJleHAiOjE1OTgwNzY2NzZ9.QL3Gkj_G9XjtFCJ7g5pnxyf4hGwy11nIHEG9V8K2OBFs-bP7jW_aZ6vtU9_h7YnlALYEVVnLvBBGpVXzB7hiMMffHePyY-5btduAMGZe5mg0ej9LKhJanJ8cEqLyYueONOg9CdVNJsuoKZyFFevK-g_eNIBbONvgxts1bVrj2Ic"
+            },
+            success: function (data) {
+            }
+        });
+
+    }
+
+    function getCurrentUser() {
+        $.ajax({
+            type: "get",
+            contentType: "application/json;charset=utf-8",
+            url: "http://127.0.0.1:8082/api/user/token/user",      //本地服务器
+            dataType: "json",
+            headers: {
+                "Authorization": "eyJhbGciOiJSUzI1NiJ9.eyJ1c2VybmFtZSI6IjA5Mjc4OCIsInBhc3N3b3JkIjoiYWM1YjYwMjM0YTExNjU3ZTRjY2UzYTNkNGNjNzRlZjAiLCJleHAiOjE1OTgzMjM0NDd9.QaAgnp4erKTc6S5ZS_q0evL0FBVGLErUAo-KfeSPm_8Op-Hr_C8wcM6sYQmJR5j6qxrktGm6i3XoEP4m8lBHAkmEgsDb_mqgjBdsEztGZizf6R2HWmJxb0giUA8eEdDoVIZdUVXlWkyRYKGnBw9EnhVDhescG0aUruY25jlogHs"
+            },
+            success: function (data) {
+            }
+        });
+    }
+</script>

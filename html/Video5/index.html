@@ -1,0 +1,287 @@
+<!--<!doctype html>-->
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>video5.0</title>
+    <link href="css/video-js.min.css" rel="stylesheet" type="text/css">
+    <script src="js/video.min.js"></script>
+    <script src="js/jquery-3.4.1.min.js"></script>
+</head>
+
+<body onload="loadDiv();">
+<div id="videoDiv">
+</div>
+<form id="addDataSourceForm">
+    IP地址:<br>
+    <input type="text" name="ip" value="10.1.1.244">
+    <br>
+    通道号:<br>
+    <input type="text" name="channel" value="00">
+    <br>
+    账号:<br>
+    <input type="text" name="username" value="admin">
+    <br>
+    密码:<br>
+    <input type="text" name="password" value="admin123">
+    <br>
+    rtsp:<br>
+    <input type="text" name="rtsp" value="rtsp://admin:admin123@10.1.1.244/id=0">
+    <br>
+    <input type="button" value="播放11" onclick="play()">
+    <br>
+    开始时间:<br>
+    <input type="text" name="starttime" value="20200302t000000z">
+    <br>
+    结束时间:<br>
+    <input type="text" name="endtime" value="20200302t235959z">
+    <br>
+    <input type="button" value="回放" onclick="historys()">
+    <br>
+    <input type="button" value="停止" onclick="stop()">
+    <br>
+    <label>==============================</label>
+    <br>
+    <input type="button" value="合成通道" onclick="ptzCtrl(00)">
+    <input type="button" value="通道1" onclick="changeChannel(10)">
+    <input type="button" value="预置位2" onclick="ptzCtrl(2)">
+    <input type="button" value="预置位15" onclick="ptzCtrl(15)">
+    <input type="button" value="重置" onclick="ptzCtrl(1)">
+    <br>
+    <label>==============================</label>
+    <br>
+    <input type="button" value="开始录制视频" onclick="transcribe()">
+    <input type="button" value="停止录制视频" onclick="stopDownload()">
+    <br>
+</form>
+
+</body>
+</html>
+<script type="text/javascript">
+    // var camera_url = "http://172.0.16.102:8000";
+    // var camera_url = "http://10.1.11.184:8000";
+    var camera_url = "http://10.1.11.184:8000";
+    //关闭事件
+    window.onunload = function () {
+        stop();
+    };
+
+    function transcribe() {
+        $.ajax({
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            url: camera_url + "/camera/rtsp-to-file",      //录制视频
+            data: JSON.stringify({
+                "username": $('input[name="username"]').val(),
+                "password": $('input[name="password"]').val(),
+                "ip": $('input[name="ip"]').val(),
+                "channel": $('input[name="channel"]').val(),
+                "inputStreamUrl": $('input[name="rtsp"]').val(),
+                "type": 0
+            }),
+            dataType: "json",
+            success: function (data) {
+            }
+        });
+    }
+
+    function stopDownload() {
+        $.ajax({
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            url: camera_url + "/camera/stop-download",      //录制视频
+            data: JSON.stringify({
+                "username": $('input[name="username"]').val(),
+                "password": $('input[name="password"]').val(),
+                "ip": $('input[name="ip"]').val(),
+                "channel": $('input[name="channel"]').val(),
+                "inputStreamUrl": $('input[name="rtsp"]').val(),
+                "type": 0
+            }),
+            dataType: "json",
+            success: function (data) {
+            }
+        });
+    }
+
+    function loadDiv() {
+        // getChannels();
+        console.info("loadDiv----->");
+        rtspToRtmp();
+    }
+
+    function rtspToRtmp() {
+        $.ajax({
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            url: camera_url + "/camera/rtsp-to-rtmp",      //本地服务器
+            data: JSON.stringify({
+                "username": $('input[name="username"]').val(),
+                "password": $('input[name="password"]').val(),
+                "ip": $('input[name="ip"]').val(),
+                "channel": $('input[name="channel"]').val(),
+                "inputStreamUrl": $('input[name="rtsp"]').val(),
+                "type": 0
+            }),
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 0) {
+                    var videoDiv = document.getElementById("videoDiv");
+                    videoDiv.innerHTML = '<video id="really-cool-video"' +
+                        ' class="video-js vjs-default-skin" controls preload="auto" width="640" height="264" poster="http://video-js.zencoder.com/oceans-clip.png"\n' +
+                        '       data-setup=\'{}\'>\n' +
+                        '    <source src="http://172.0.16.102:8080/WLZFZP/BL/130206/092788/20200813/01D5320EF0FE47CFB960615C9CD21DF5/be2b06591e0c45afbfbdbb0e24fa7917.avi" type="rtmp/flv">\n' +
+                        '</video>';
+                    var myPlayer = videojs('really-cool-video');
+                    videojs("really-cool-video").ready(function () {
+                        var myPlayer = this;
+                        myPlayer.play();
+                    });
+                }
+            }
+        });
+    }
+
+    //回放
+    function historys() {
+        var info = $('#addDataSourceForm').serializeArray();
+        $.ajax({
+            type: "POST",
+            url: camera_url + "/zhuanma?type=2",      //本地服务器
+            data: info,
+            dataType: "json",
+            success: function (data) {
+                if (data.code == 0) {
+                    console.log("成功")
+                    var myPlayer = videojs('really-cool-video');
+                    videojs("really-cool-video").ready(function () {
+                        var myPlayer = this;
+                        myPlayer.play();
+                    });
+                } else {
+
+                }
+            }
+        });
+    }
+
+    function stop() {
+        stopRtspToRtmp();
+        stopDownload();
+    }
+
+    function stopRtspToRtmp() {
+        $.ajax({
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            url: camera_url + "/camera/stop-rtsp-to-rtmp", //本地服务器
+            data: JSON.stringify({
+                "ip": "10.1.2.185"
+            }),
+            dataType: "json",
+            success: function (data) {
+            }
+        });
+    };
+
+    /**
+     * 停止下载
+     * @param arraignRoomDto
+     * @param channel
+     */
+    function stopDownload(arraignRoomDto, channel) {
+        $.ajax({
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            url: camera_url + "/camera/stop-download", //本地服务器
+            data: JSON.stringify({
+                "username": $('input[name="username"]').val(),
+                "password": $('input[name="password"]').val(),
+                "ip": $('input[name="ip"]').val(),
+                "channel": $('input[name="channel"]').val(), //默认播放合成通道
+            }),
+            dataType: "json",
+            success: function (data) {
+            }
+        });
+    };
+
+    function ptzCtrl(number) {
+        console.info("number====>", number);
+        setTimeout(function () {
+            $.ajax({
+                type: "POST",
+                url: camera_url + "/keda/ptz-control?username=yctxuser&password=yctxuser123&chnid=1&param1=" + number + "&ptzcmd=15",      //本地服务器
+                dataType: "json",
+                success: function (changeChannel) {
+                    console.info("pause----111->");
+                }
+            });
+        }, 5000);
+    }
+
+    function changeChannel(channel) {
+        if ("00" == channel || "0" == channel) {
+            alert("合成通道不能设置预置位！");
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            url: camera_url + "/camera/rtsp-to-rtmp",      //本地服务器
+            data: JSON.stringify({
+                "username": $('input[name="username"]').val(),
+                "password": $('input[name="password"]').val(),
+                "ip": $('input[name="ip"]').val(),
+                "channel": channel,
+                "inputStreamUrl": $('input[name="rtsp"]').val(),
+                "type": 0,
+                "changeChannelSign": true
+            }),
+            dataType: "json",
+            success: function (data) {
+                console.info("data======>", data);
+            }
+        });
+    }
+
+    function getChannels() {
+        console.info("243242432====");
+        var username = "1111";
+        var password = "22";
+        var ip = "10.1.1.1";
+        var param = "?username=" + username + "&password=" + password + "&serverIp=" + ip;
+
+        $.ajax({
+            timeout: 3000,
+            // async: true,//同步执行
+            type: "post",
+            contentType: "application/json;charset=utf-8",
+            url: camera_url + '/keda/channels' + param, //本地服务器
+            dataType: "json",
+            fail: function () {
+                console.info("message====>fail===>");
+            },
+            success: function (data) {
+                if (data.length > 0) {
+                    for (var i = 0; i < data.length; i++) {
+                        channelArray.push({
+                            value: data[i].devchnid,
+                            text: data[i].name
+                        })
+                    }
+                } else {
+                    channelArray.push({
+                        value: 0,
+                        text: "全景"
+                    })
+                }
+            },
+            complete: function (XMLHttpRequest, status) { //请求完成后最终执行参数
+                console.info("complete=====>");
+                if (status == 'timeout') {//超时,status还有success,error等值的情况
+                    //common.popAlert("访问超时");
+                }
+            }
+        });
+    }
+</script>

@@ -1,0 +1,48 @@
+<!--<!doctype html>-->
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>video5.0</title>
+    <script src="js/jquery-3.4.1.min.js"></script>
+</head>
+
+<body onload="initChannels();">
+
+<div style="background-color:#a3c;">
+    <select id="channels">
+        <option id="0" value="0">0通道</option>
+    </select>
+</div>
+<div>
+    <button type="submit " onclick="change();">切换</button>
+</div>
+</body>
+</html>
+<script type="text/javascript">
+    function initChannels() {
+        $.ajax({
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            url: "http://127.0.0.1:8000/camera/keda/channels?username=yctxuser&password=yctxuser123",      //本地服务器
+            dataType: "json",
+            success: function (data) {
+                console.info("data===>", data);
+                var channels = document.getElementById("channels");
+                for (var i in data) {
+                    var channel = data[i];
+                    console.info("channel====>", channel);
+                    console.info("channel====>", channel["chnid"]);
+                    channels.options.add(new Option(channel["chnid"] + "通道", channel["chnid"]));
+                    /*channels.innerText =
+                        '<option id="' + channel["chnid"] + ' value="' + channel["chnid"] + '">'
+                        + channel["chnid"] + '通道' +
+                        '</option>';*/
+                }
+            }
+        });
+    }
+    function change() {
+        var channel = document.getElementById("channels");
+        console.info("change====>", channel.value);
+    }
+</script>
